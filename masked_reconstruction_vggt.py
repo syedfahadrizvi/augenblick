@@ -194,15 +194,12 @@ def step2_run_vggt_direct(images_dir: Path, output_dir: Path, vggt_script_path: 
             logger.warning(f"Processing {image_count} images in batches of {batch_size} is not yet implemented")
             logger.warning("Processing all images at once - may cause OOM")
         
-        # Run VGGT script with save_for_neuralangelo flag to ensure depth maps are saved
+        # Run VGGT script to generate depth maps
         cmd = [
             sys.executable,  # Use current Python interpreter
             str(vggt_script_path),
             str(vggt_input_dir),
-            "--output_dir", str(vggt_dir),
-            "--save_for_neuralangelo",  # This flag ensures depth maps are saved
-            "--skip_glb",
-            "--conf_thres", "50.0"
+            "--output_dir", str(vggt_dir)
         ]
         
         logger.info(f"Running VGGT command: {' '.join(cmd)}")
