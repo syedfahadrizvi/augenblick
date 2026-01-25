@@ -88,9 +88,9 @@ run_vggt_part() {
     cd /home/jhennessy7.gatech/augenblick
     
     # Run only the VGGT pipeline part
-    python prep_crop.py "$@"
-    python vggt_batch_final.py "$@"
-    python scale_transforms_to_original.py "$@"
+    python scripts/prep_crop.py "$@"
+    python scripts/vggt_batch_final.py "$@"
+    python scripts/scale_transforms_to_original.py "$@"
 }
 
 # Function to run Neuralangelo part

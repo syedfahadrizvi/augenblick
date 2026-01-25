@@ -289,7 +289,7 @@ fi
 
 # Copy required scripts
 REQUIRED_SCRIPTS=(
-    "vggt_preprocessing.py"
+    "scripts/vggt_preprocessing.py"
     "vggt_to_sugar.py"
 )
 
@@ -304,8 +304,8 @@ for script in "${REQUIRED_SCRIPTS[@]}"; do
 done
 
 # Copy VGGT script if available
-if [ -f "${SCRIPT_DIR}/vggt_batch_processor.py" ]; then
-    cp "${SCRIPT_DIR}/vggt_batch_processor.py" "${WORK_DIR}/"
+if [ -f "${SCRIPT_DIR}/scripts/vggt_batch_processor.py" ]; then
+    cp "${SCRIPT_DIR}/scripts/vggt_batch_processor.py" "${WORK_DIR}/"
     echo "✓ Copied vggt_batch_processor.py"
 else
     echo -e "${YELLOW}⚠ vggt_batch_processor.py not found - VGGT will not be available${NC}"

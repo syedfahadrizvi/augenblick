@@ -140,14 +140,14 @@ else
 fi
 
 # Training monitor script
-if [ -f "${SCRIPT_DIR}/training_monitor.py" ]; then
-    cp "${SCRIPT_DIR}/training_monitor.py" "${WORK_DIR}/"
+if [ -f "${SCRIPT_DIR}/scripts/training_monitor.py" ]; then
+    cp "${SCRIPT_DIR}/scripts/training_monitor.py" "${WORK_DIR}/"
     chmod +x "${WORK_DIR}/training_monitor.py"
     echo "✓ Copied training monitor"
 fi
 
 # Copy config files and supporting scripts
-for file in stage*.yaml *.json prep_crop.py scale_transforms_to_original.py convert_transforms_to_neuralangelo.py; do
+for file in stage*.yaml *.json scripts/prep_crop.py scripts/scale_transforms_to_original.py scripts/convert_transforms_to_neuralangelo.py; do
     if [ -f "${SCRIPT_DIR}/${file}" ]; then
         cp "${SCRIPT_DIR}/${file}" "${WORK_DIR}/"
         echo "✓ Copied ${file}"
@@ -208,10 +208,10 @@ echo "Training started with PID: ${TRAIN_PID}"
 sleep 60
 
 # Start monitoring in background if available
-if [ -f "${WORK_DIR}/training_monitor.py" ]; then
+if [ -f "${WORK_DIR}/scripts/training_monitor.py" ]; then
     echo ""
     echo "Starting training monitor..."
-    python "${WORK_DIR}/training_monitor.py" "${WORK_DIR}/output" --interval 120 > "${WORK_DIR}/monitor.log" 2>&1 &
+    python "${WORK_DIR}/scripts/training_monitor.py" "${WORK_DIR}/output" --interval 120 > "${WORK_DIR}/monitor.log" 2>&1 &
     MONITOR_PID=$!
     echo "Monitor started with PID: ${MONITOR_PID}"
 fi

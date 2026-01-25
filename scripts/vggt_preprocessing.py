@@ -478,7 +478,7 @@ def main():
     parser.add_argument("input_dir", type=Path, help="Input directory with images/masks")
     parser.add_argument("output_dir", type=Path, help="Output directory")
     parser.add_argument("--vggt-script", type=Path,
-                      default=Path.home() / "augenblick/vggt_batch_processor.py",
+                      default=Path.home() / "augenblick/scripts/vggt_batch_processor.py",
                       help="Path to VGGT script")
     parser.add_argument("--use-colmap", action="store_true",
                       help="Use COLMAP instead of VGGT (legacy option)")

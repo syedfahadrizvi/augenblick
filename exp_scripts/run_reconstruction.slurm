@@ -39,7 +39,7 @@ nvidia-smi
 echo "Starting 3D reconstruction pipeline..."
 
 # Process images from scratch
-python run_complete_pipeline.py \
+python src/pipeline/run_complete_pipeline.py \
     ~/scratch/images_from_dropbox/noscale \
     --output_dir ~/scratch/reconstruction_$(date +%Y%m%d_%H%M%S) \
     --neus2_steps 30000

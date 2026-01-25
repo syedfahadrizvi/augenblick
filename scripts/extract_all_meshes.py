@@ -15,7 +15,7 @@ def extract_mesh_from_checkpoint(config_path, checkpoint_path, output_path, reso
     """Extract mesh from a single checkpoint"""
     cmd = [
         sys.executable,
-        os.path.expanduser("~/augenblick/extract_mesh_complete.py"),
+        os.path.expanduser("~/augenblick/scripts/extract_mesh_complete.py"),
         "--config", config_path,
         "--checkpoint", checkpoint_path,
         "--output_file", output_path,
