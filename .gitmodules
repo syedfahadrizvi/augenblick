@@ -4,3 +4,9 @@
 [submodule "src/neuralangelo"]
 	path = src/neuralangelo
 	url = https://github.com/NVlabs/neuralangelo
+[submodule "src/instant-ngp"]
+	path = src/instant-ngp
+	url = https://github.com/NVlabs/instant-ngp
+[submodule "src/tiny-cuda-nn"]
+	path = src/tiny-cuda-nn
+	url = https://github.com/nvlabs/tiny-cuda-nn
