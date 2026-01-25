@@ -9,7 +9,7 @@ Handles data with the naming convention:
 Output structure:
   output_dir/
     images/
-      camera3_camera 3_IMG_7477.JPG
+      camera3_camera 3_IMG_7477.jpg
     masks/
       camera3_camera 3_IMG_7477.png
 """
@@ -163,7 +163,7 @@ def prepare_dataset(
     processed = 0
     for image_path, mask_path in pairs:
         # Process image (preserve original name)
-        dest_image = images_dir / image_path.name
+        dest_image = images_dir / f"{image_path.stem}.jpg"
         operation(image_path, dest_image)
         
         # Process mask (rename to match image stem + .png)
@@ -182,7 +182,7 @@ def prepare_dataset(
         unmatched = [img for img in images if img not in matched_images]
         
         for image_path in unmatched:
-            dest_image = images_dir / image_path.name
+            dest_image = images_dir / f"{image_path.stem}.jpg"
             operation(image_path, dest_image)
             unmatched_count += 1
         
