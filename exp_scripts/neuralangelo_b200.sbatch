@@ -134,8 +134,8 @@ else
 fi
 
 # Copy training monitor script
-if [ -f "${SCRIPT_DIR}/training_monitor.py" ]; then
-    cp "${SCRIPT_DIR}/training_monitor.py" "${WORK_DIR}/"
+if [ -f "${SCRIPT_DIR}/scripts/training_monitor.py" ]; then
+    cp "${SCRIPT_DIR}/scripts/training_monitor.py" "${WORK_DIR}/"
     chmod +x "${WORK_DIR}/training_monitor.py"
     echo "✓ Copied training monitor"
 fi
@@ -149,7 +149,7 @@ for stage_config in stage1_coarse.yaml stage2_mid.yaml stage3_fine.yaml; do
 done
 
 # Copy any supporting scripts
-for script in prep_crop.py vggt_batch_processor.py scale_transforms_to_original.py convert_transforms_to_neuralangelo.py; do
+for script in scripts/prep_crop.py scripts/vggt_batch_processor.py scripts/scale_transforms_to_original.py scripts/convert_transforms_to_neuralangelo.py; do
     if [ -f "${SCRIPT_DIR}/${script}" ]; then
         cp "${SCRIPT_DIR}/${script}" "${WORK_DIR}/"
         echo "✓ Copied ${script}"
@@ -203,8 +203,8 @@ echo ""
 # Determine which VGGT script to use (updated name)
 VGGT_SCRIPT_PATH=""
 for script in \
-    "${SCRIPT_DIR}/vggt_batch_processor.py" \
-    "${HOME}/augenblick/vggt_batch_processor.py" \
+    "${SCRIPT_DIR}/scripts/vggt_batch_processor.py" \
+    "${HOME}/augenblick/scripts/vggt_batch_processor.py" \
     "${HOME}/augenblick/src/vggt/vggt_batch_processor.py"; do
     if [ -f "$script" ]; then
         VGGT_SCRIPT_PATH="$script"

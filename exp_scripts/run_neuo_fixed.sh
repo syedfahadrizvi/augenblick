@@ -147,7 +147,7 @@ if [ -f "${SCRIPT_DIR}/scripts/training_monitor.py" ]; then
 fi
 
 # Copy config files and supporting scripts
-for file in stage*.yaml *.json scripts/prep_crop.py scripts/scale_transforms_to_original.py scripts/convert_transforms_to_neuralangelo.py; do
+for file in configs/stage*.yaml *.json scripts/prep_crop.py scripts/scale_transforms_to_original.py scripts/convert_transforms_to_neuralangelo.py; do
     if [ -f "${SCRIPT_DIR}/${file}" ]; then
         cp "${SCRIPT_DIR}/${file}" "${WORK_DIR}/"
         echo "✓ Copied ${file}"
