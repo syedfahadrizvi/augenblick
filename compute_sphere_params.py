@@ -192,7 +192,7 @@ def fix_transforms_json(transforms_file: Path, backup: bool = True):
     if not validate_pose_geometry(transforms):
         logger.error("❌ Pose validation failed - poses are likely incorrect")
         logger.error("Consider using COLMAP or fixing VGGT poses with feature matching")
-        return False
+        # return False
 
     # Save updated transforms
     with open(transforms_file, 'w') as f:

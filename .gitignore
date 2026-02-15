@@ -157,7 +157,5 @@ skyseg.onnx
 .pixi
 *.egg-info
 
-# pytorch3d
-pytorch3d/
 miniconda.sh
 *.ufhpc.*

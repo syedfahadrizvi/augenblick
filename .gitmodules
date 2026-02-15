@@ -10,3 +10,6 @@
 [submodule "src/tiny-cuda-nn"]
 	path = src/tiny-cuda-nn
 	url = https://github.com/nvlabs/tiny-cuda-nn
+[submodule "src/pytorch3d"]
+	path = src/pytorch3d
+	url = https://github.com/facebookresearch/pytorch3d.git
