@@ -17,7 +17,7 @@ data:
     image_size:
     - 512
     - 768
-    subset:
+    subset: null
   val:
     batch_size: 1
     image_size:
@@ -42,7 +42,7 @@ model:
       activ_params: {}
       activ_density: softplus
       activ_density_params: {}
-    view_dep: True
+    view_dep: true
     encoding:
       type: fourier
       levels: 10
@@ -63,11 +63,13 @@ model:
           init_active_level: 4
           step: 500
         hashgrid:
-            min_logres: 5
-            max_logres: 11
-            dict_size: 22
-            dim: 8
-            range: [-2,2]
+          min_logres: 5
+          max_logres: 11
+          dict_size: 22
+          dim: 8
+          range:
+          - -2
+          - 2
       gradient:
         mode: numerical
         taps: 2
@@ -82,7 +84,7 @@ model:
         checkpoint: true
         geometric_init: true
         weight_norm: true
-        inside_out: False
+        inside_out: false
         out_bias: 0.5
     rgb:
       mode: idr
@@ -97,11 +99,11 @@ model:
         activ_params: {}
         skip: []
     s_var:
-        init_val: 3.
-        anneal_end: 0.1
+      init_val: 3.0
+      anneal_end: 0.1
   appear_embed:
-      enabled: false
-      dim: 8
+    enabled: false
+    dim: 8
   render:
     num_samples:
       coarse: 64
@@ -114,8 +116,8 @@ model:
 trainer:
   type: projects.neuralangelo.trainer
   ema_config:
-    enabled: False
-    load_ema_checkpoint: False
+    enabled: false
+    load_ema_checkpoint: false
   loss_weight:
     render: 1.0
     eikonal: 0.1
@@ -134,7 +136,7 @@ optim:
     lr: 0.003
     weight_decay: 0.01
   sched:
-    iteration_mode: True
+    iteration_mode: true
     type: two_steps_with_warmup
     warm_up_end: 200
     two_steps:
@@ -145,7 +147,7 @@ max_iter: 2000
 logging_iter: 50
 wandb_scalar_iter: 100
 wandb_image_iter: 10000
-speed_benchmark: False
+speed_benchmark: false
 checkpoint:
   save_iter: 500
   save_latest_iter: 100
