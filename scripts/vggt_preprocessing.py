@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Tuple, Optional
 
 # Add modules to path
-sys.path.append(str(Path(__file__).parent))
+sys.path.append(str(Path(__file__).parent.parent))
 from modules.dataset import DatasetOrganizer
 from modules.config import PipelineConfig
 
