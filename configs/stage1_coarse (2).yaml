@@ -1,57 +1,89 @@
-# Stage 1: Coarse reconstruction (0-2k iterations)
-# Low resolution for fast convergence and rough shape establishment
-
 data:
   type: projects.neuralangelo.data
-  root: /blue/arthur.porto-biocosmos/jhennessy7.gatech/scratch/neuralangelo_b200_20250721_144006
-  name: transforms.json  # Use converted NeRF-style cameras
+  root: output/preprocessing/vggt
+  name: transforms.json
   num_images: 138
   num_workers: 8
   preload: false
   use_multi_epoch_loader: true
-  # Sphere normalization from original config
   readjust:
-    center: [0.6389583298477574, 0.6039861034655917, 0.5979484190111575]
-    scale: 0.8946571020905045
+    center:
+    - 0.0
+    - 0.0
+    - 0.0
+    scale: 0.5489564947842128
   train:
     batch_size: 1
-    image_size: [512, 768]  # Low resolution for stage 1
+    image_size:
+    - 512
+    - 768
+    subset:
   val:
     batch_size: 1
-    image_size: [256, 384]
+    image_size:
+    - 256
+    - 384
     subset: 1
-
+    max_viz_samples: 16
 model:
   type: projects.neuralangelo.model
   background:
-    enabled: false  # Disable background since we have masks
+    enabled: false
     white: true
+    mlp:
+      num_layers: 8
+      hidden_dim: 256
+      skip:
+      - 4
+      num_layers_rgb: 2
+      hidden_dim_rgb: 128
+      skip_rgb: []
+      activ: relu
+      activ_params: {}
+      activ_density: softplus
+      activ_density_params: {}
+    view_dep: True
+    encoding:
+      type: fourier
+      levels: 10
+    encoding_view:
+      type: spherical
+      levels: 3
   object:
     sdf:
       encoding:
         type: hashgrid
         base_resolution: 16
         n_features_per_level: 2
-        log2_hashmap_size: 20  # Smaller for stage 1
-        levels: 12  # Fewer levels
-        max_logres: 10  # Lower resolution
+        log2_hashmap_size: 20
+        levels: 12
+        max_logres: 10
         coarse2fine:
           enabled: true
           init_active_level: 4
           step: 500
+        hashgrid:
+            min_logres: 5
+            max_logres: 11
+            dict_size: 22
+            dim: 8
+            range: [-2,2]
       gradient:
         mode: numerical
-        taps: 2  # Fast gradient computation
+        taps: 2
       mlp:
         activ: softplus
         activ_params:
           beta: 100
-        hidden_dim: 128  # Smaller network
+        hidden_dim: 128
         num_layers: 4
-        skip: [2]
-        checkpoint: true  # Gradient checkpointing
+        skip:
+        - 2
+        checkpoint: true
         geometric_init: true
         weight_norm: true
+        inside_out: False
+        out_bias: 0.5
     rgb:
       mode: idr
       encoding_view:
@@ -62,44 +94,60 @@ model:
         hidden_dim: 64
         num_layers: 3
         weight_norm: true
+        activ_params: {}
+        skip: []
+    s_var:
+        init_val: 3.
+        anneal_end: 0.1
+  appear_embed:
+      enabled: false
+      dim: 8
   render:
     num_samples:
       coarse: 64
-      fine: 0  # No fine sampling in stage 1
-      background: 0  # No background samples
+      fine: 0
+      background: 0
     rand_rays: 512
     stratified: true
-    mask_background: true  # Only sample inside masks
-
+    mask_background: true
+    num_sample_hierarchy: 4
 trainer:
   type: projects.neuralangelo.trainer
-  amp_config:
-    enabled: true
-    init_scale: 65536.0
-  grad_accum_iter: 4
+  ema_config:
+    enabled: False
+    load_ema_checkpoint: False
   loss_weight:
     render: 1.0
     eikonal: 0.1
-    curvature: 0.0001  # Low for initial stage
+    curvature: 0.0001
+  init:
+    type: none
+  amp_config:
+    enabled: true
+    init_scale: 65536.0
+  depth_vis_scale: 0.5
+  grad_accum_iter: 4
   skip_initial_validation: true
-
 optim:
   type: AdamW
   params:
-    lr: 0.003  # High learning rate for initial convergence
+    lr: 0.003
     weight_decay: 0.01
   sched:
+    iteration_mode: True
     type: two_steps_with_warmup
     warm_up_end: 200
-    two_steps: [1500, 1800]
-
-# Training settings
+    two_steps:
+    - 1500
+    - 1800
+    gamma: 10.0
 max_iter: 2000
 logging_iter: 50
+wandb_scalar_iter: 100
+wandb_image_iter: 10000
+speed_benchmark: False
 checkpoint:
   save_iter: 500
   save_latest_iter: 100
-
-# Disable expensive operations
 validation_iter: 500
 image_save_iter: 9999999

@@ -14,7 +14,7 @@ export ORGANIZED_DIR="${SCRATCH_DIR}/scale_organized"
 
 # GPU configuration
 export CUDA_VISIBLE_DEVICES=0
-export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
+export PYTORCH_ALLOC_CONF="expandable_segments:True"
 
 # Training parameters
 MAX_STEPS=25000

@@ -14,17 +14,17 @@ import pickle
 import argparse
 
 # Fix for CUDA allocation error
-# Remove problematic PYTORCH_CUDA_ALLOC_CONF settings
-if 'PYTORCH_CUDA_ALLOC_CONF' in os.environ:
-    current_conf = os.environ['PYTORCH_CUDA_ALLOC_CONF']
+# Remove problematic PYTORCH_ALLOC_CONF settings
+if 'PYTORCH_ALLOC_CONF' in os.environ:
+    current_conf = os.environ['PYTORCH_ALLOC_CONF']
     if 'max_split_size_mb' in current_conf:
         # Remove the problematic option
         parts = current_conf.split(',')
         new_parts = [p for p in parts if 'max_split_size_mb' not in p]
         if new_parts:
-            os.environ['PYTORCH_CUDA_ALLOC_CONF'] = ','.join(new_parts)
+            os.environ['PYTORCH_ALLOC_CONF'] = ','.join(new_parts)
         else:
-            del os.environ['PYTORCH_CUDA_ALLOC_CONF']
+            del os.environ['PYTORCH_ALLOC_CONF']
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 

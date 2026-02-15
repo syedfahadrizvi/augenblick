@@ -206,7 +206,7 @@ def step2_run_vggt_direct(images_dir: Path, output_dir: Path, vggt_script_path: 
         
         # Set environment to use correct GPU and manage memory
         env = os.environ.copy()
-        env["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"  # Help with fragmentation
+        env["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"  # Help with fragmentation
         
         # Run the script
         result = subprocess.run(cmd, capture_output=True, text=True, env=env)

@@ -9,7 +9,7 @@ import glob
 import argparse
 
 # Fix CUDA environment before any torch imports
-os.environ.pop('PYTORCH_CUDA_ALLOC_CONF', None)
+os.environ.pop('PYTORCH_ALLOC_CONF', None)
 
 def extract_mesh_from_checkpoint(config_path, checkpoint_path, output_path, resolution, block_res, single_gpu=True, keep_lcc=False):
     """Extract mesh from a single checkpoint"""

@@ -290,7 +290,7 @@ class GPUManager:
         gpu_name = self.gpu_info["name"]
         
         # Enable expandable segments for better memory management
-        os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+        os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
         
         # B200-specific optimizations
         if "B200" in gpu_name or "B100" in gpu_name:
@@ -299,7 +299,7 @@ class GPUManager:
             os.environ["TORCH_CUDNN_V8_USE_GRAPH_MODE"] = "1"
             
             # Conservative memory management for B200
-            os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True,max_split_size_mb:512"
+            os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True,max_split_size_mb:512"
             
             # Disable validation to save memory
             os.environ["NEURALANGELO_SKIP_VALIDATION"] = "1"

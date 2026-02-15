@@ -35,7 +35,7 @@ if [ -n "$CUDA_VISIBLE_DEVICES" ] && nvidia-smi &>/dev/null; then
         echo "  - Setting memory allocation to expandable segments"
         echo "  - Configuring for conservative training parameters"
         echo "  - Disabling validation to save memory"
-        export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True,max_split_size_mb:512"
+        export PYTORCH_ALLOC_CONF="expandable_segments:True,max_split_size_mb:512"
         export CUDA_LAUNCH_BLOCKING=0
         export NEURALANGELO_SKIP_VALIDATION=1
         export NEURALANGELO_CONSERVATIVE_MODE=1
@@ -51,13 +51,13 @@ if torch.cuda.is_available():
 "
     elif [[ "${GPU_NAME}" == *"H100"* ]] || [[ "${GPU_NAME}" == *"H200"* ]]; then
         echo "Detected high-end GPU - applying optimizations"
-        export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
+        export PYTORCH_ALLOC_CONF="expandable_segments:True"
     elif [[ "${GPU_NAME}" == *"A100"* ]]; then
         echo "Detected A100 - applying optimizations"
-        export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
+        export PYTORCH_ALLOC_CONF="expandable_segments:True"
     else
         echo "Standard GPU configuration"
-        export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
+        export PYTORCH_ALLOC_CONF="expandable_segments:True"
     fi
 else
     echo -e "${YELLOW}Running in CPU mode${NC}"

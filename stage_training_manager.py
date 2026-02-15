@@ -466,7 +466,7 @@ class MultiStageTrainer:
             env["CUDA_VISIBLE_DEVICES"] = str(self.gpu_index)
             
             # Add memory management environment variable
-            env["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+            env["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
             
             result = subprocess.run(cmd, env=env, check=True)
             

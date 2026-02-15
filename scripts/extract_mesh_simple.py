@@ -9,7 +9,7 @@ import argparse
 import torch
 
 # Fix environment
-os.environ.pop('PYTORCH_CUDA_ALLOC_CONF', None)
+os.environ.pop('PYTORCH_ALLOC_CONF', None)
 os.environ['RANK'] = '0'
 os.environ['WORLD_SIZE'] = '1'
 os.environ['MASTER_ADDR'] = 'localhost'

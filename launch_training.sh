@@ -12,7 +12,7 @@ BASE_DIR="/blue/arthur.porto-biocosmos/jhennessy7.gatech/scratch"
 export CUDA_VISIBLE_DEVICES=0
 
 # AGGRESSIVE MEMORY MANAGEMENT
-export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True,max_split_size_mb:128,garbage_collection_threshold:0.6"
+export PYTORCH_ALLOC_CONF="expandable_segments:True,max_split_size_mb:128,garbage_collection_threshold:0.6"
 export CUDA_LAUNCH_BLOCKING=0
 export TORCH_CUDA_ARCH_LIST="10.0"  # Blackwell architecture
 

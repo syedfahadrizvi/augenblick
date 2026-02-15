@@ -8,7 +8,7 @@ import sys
 import argparse
 
 # Fix CUDA environment before any torch imports
-os.environ.pop('PYTORCH_CUDA_ALLOC_CONF', None)
+os.environ.pop('PYTORCH_ALLOC_CONF', None)
 
 # Add current directory to path
 sys.path.append(os.getcwd())
