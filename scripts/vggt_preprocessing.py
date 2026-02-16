@@ -295,7 +295,7 @@ def run_colmap_direct(images_dir: Path, masks_dir: Path, output_dir: Path) -> Op
     colmap_exe = None
     for path in colmap_paths:
         try:
-            result = subprocess.run([path, "--help"], capture_output=True, timeout=1)
+            result = subprocess.run([path, "--help"], capture_output=True, timeout=10)
             if result.returncode == 0:
                 colmap_exe = path
                 logger.info(f"Found COLMAP at: {path}")
