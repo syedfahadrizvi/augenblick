@@ -17,9 +17,15 @@ from tqdm import tqdm
 try:
     from vggt.models.vggt import VGGT
     from vggt.utils.load_fn import load_and_preprocess_images
+    from vggt.utils.geometry import unproject_depth_map_to_point_map
 except ImportError:
     print("Error: VGGT not found. Please install VGGT first.")
     exit(1)
+
+try:
+    import trimesh
+except ImportError:
+    trimesh = None
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -112,6 +118,7 @@ def process_all_images_together(
     # Extract results
     results = {
         'depth_maps': [],
+        'depth_conf': [],
         'world_points': [],
         'extrinsics': [],
         'intrinsics': [],
@@ -145,6 +152,21 @@ def process_all_images_together(
         for i in range(depth.shape[0]):
             results['depth_maps'].append(depth[i])
     
+    # Process depth confidence
+    for conf_key in ('depth_conf', 'world_points_conf'):
+        if conf_key in predictions:
+            conf = predictions[conf_key].cpu().numpy()
+            logger.info(f"Original {conf_key} shape: {conf.shape}")
+            if conf.shape[0] == 1:
+                conf = conf[0]
+            if conf.ndim == 4 and conf.shape[-1] == 1:
+                conf = conf[..., 0]
+            elif conf.ndim == 4 and conf.shape[1] == 1:
+                conf = conf[:, 0]
+            for i in range(conf.shape[0]):
+                results['depth_conf'].append(conf[i])
+            break
+    
     # Process world points
     if 'world_points' in predictions:
         points = predictions['world_points'].cpu().numpy()
@@ -158,6 +180,114 @@ def process_all_images_together(
             results['world_points'].append(points[i])
     
     return results
+
+
+def save_point_cloud_ply(
+    results: Dict,
+    output_dir: Path,
+    conf_threshold: float = 2.0,
+    max_points: int = 500000,
+) -> Optional[Path]:
+    """Generate and save a .ply point cloud from VGGT depth predictions.
+
+    Adapted from masked_reconstruction_vggt.py step2_run_vggt:
+    unprojects depth maps into 3D, filters by confidence, attaches RGB
+    colours from the input images, and exports via trimesh.
+    """
+    if trimesh is None:
+        logger.error("trimesh is not installed. Install it with: pip install trimesh")
+        return None
+
+    logger.info("Generating .ply point cloud...")
+
+    # --- 3D points -----------------------------------------------------------
+    # Prefer direct world_points from VGGT; fall back to depth unprojection.
+    if results['world_points']:
+        points_3d = np.stack(results['world_points'], axis=0)  # (S, H, W, 3)
+        logger.info(f"Using world_points directly: {points_3d.shape}")
+    elif results['depth_maps'] and results['extrinsics']:
+        depth = np.stack(results['depth_maps'], axis=0)  # (S, H, W)
+        extrinsic = np.stack(results['extrinsics'], axis=0)  # (S, 4, 4)
+        intrinsic = np.stack(results['intrinsics'], axis=0)  # (S, 3, 3)
+        points_3d = unproject_depth_map_to_point_map(
+            depth, extrinsic[:, :3, :], intrinsic
+        )
+        logger.info(f"Unprojected depth to 3D points: {points_3d.shape}")
+    else:
+        logger.error("Cannot generate point cloud: no world_points or depth data")
+        return None
+
+    # --- RGB colours ----------------------------------------------------------
+    images_tensor = results['images']
+    if images_tensor.ndim == 5 and images_tensor.shape[0] == 1:
+        images_tensor = images_tensor[0]  # remove outer batch dim
+    # (S, C, H, W) -> (S, H, W, C)
+    points_rgb = images_tensor.permute(0, 2, 3, 1).numpy()
+    points_rgb = np.clip(points_rgb * 255, 0, 255).astype(np.uint8)
+
+    # Resize RGB to match point-map spatial resolution if needed
+    pt_h, pt_w = points_3d.shape[1], points_3d.shape[2]
+    if points_rgb.shape[1] != pt_h or points_rgb.shape[2] != pt_w:
+        resized = np.zeros((points_rgb.shape[0], pt_h, pt_w, 3), dtype=np.uint8)
+        for i in range(points_rgb.shape[0]):
+            img = Image.fromarray(points_rgb[i])
+            img = img.resize((pt_w, pt_h), Image.BILINEAR)
+            resized[i] = np.array(img)
+        points_rgb = resized
+
+    # --- Confidence mask ------------------------------------------------------
+    if results['depth_conf']:
+        depth_conf = np.stack(results['depth_conf'], axis=0)  # (S, H, W)
+        # Resize conf to match point-map resolution if shapes differ
+        if depth_conf.shape[1:] != (pt_h, pt_w):
+            from PIL import Image as _PILImg
+            resized_conf = np.zeros((depth_conf.shape[0], pt_h, pt_w), dtype=depth_conf.dtype)
+            for i in range(depth_conf.shape[0]):
+                c = _PILImg.fromarray(depth_conf[i])
+                c = c.resize((pt_w, pt_h), _PILImg.BILINEAR)
+                resized_conf[i] = np.array(c)
+            depth_conf = resized_conf
+        conf_mask = depth_conf >= conf_threshold
+        logger.info(
+            f"Confidence filter ({conf_threshold}): "
+            f"{conf_mask.sum()} / {conf_mask.size} points pass"
+        )
+    else:
+        conf_mask = np.ones(points_3d.shape[:3], dtype=bool)
+        logger.info("No confidence data available, using all points")
+
+    # --- Flatten & filter -----------------------------------------------------
+    points_3d_flat = points_3d[conf_mask]
+    points_rgb_flat = points_rgb[conf_mask]
+
+    # Remove NaN / Inf / extreme values
+    valid = np.isfinite(points_3d_flat).all(axis=-1)
+    points_3d_flat = points_3d_flat[valid]
+    points_rgb_flat = points_rgb_flat[valid]
+    logger.info(f"Valid points after filtering: {len(points_3d_flat)}")
+
+    # Sub-sample if there are too many points
+    if len(points_3d_flat) > max_points:
+        indices = np.random.choice(len(points_3d_flat), max_points, replace=False)
+        points_3d_flat = points_3d_flat[indices]
+        points_rgb_flat = points_rgb_flat[indices]
+        logger.info(f"Subsampled to {max_points} points")
+
+    if len(points_3d_flat) == 0:
+        logger.error("No valid 3D points to export")
+        return None
+
+    # --- Export ----------------------------------------------------------------
+    ply_path = output_dir / "points.ply"
+    cloud = trimesh.PointCloud(points_3d_flat, colors=points_rgb_flat)
+    cloud.export(str(ply_path))
+
+    file_size_mb = ply_path.stat().st_size / (1024 * 1024)
+    logger.info(
+        f"Saved point cloud: {ply_path} "
+        f"({len(points_3d_flat)} points, {file_size_mb:.1f} MB)"
+    )
+    return ply_path
 
 
 def save_results(results: Dict, image_paths: List[Path], output_dir: Path):
@@ -250,6 +380,12 @@ def main():
     parser.add_argument("--output_dir", type=Path, required=True, help="Output directory")
     parser.add_argument("--device", type=str, default="cuda", help="Device to use")
     parser.add_argument("--metadata", type=Path, help="Path to metadata.json from prep_crop.py")
+    parser.add_argument("--conf_threshold", type=float, default=2.0,
+                        help="Depth confidence threshold for point cloud filtering (default: 2.0)")
+    parser.add_argument("--max_points", type=int, default=500000,
+                        help="Maximum number of points in the .ply output (default: 500000)")
+    parser.add_argument("--no_ply", action="store_true",
+                        help="Skip .ply point cloud generation")
     
     args = parser.parse_args()
     
@@ -278,12 +414,24 @@ def main():
     # Save results
     save_results(results, image_paths, args.output_dir)
     
+    # Generate .ply point cloud
+    if not args.no_ply:
+        ply_path = save_point_cloud_ply(
+            results, args.output_dir,
+            conf_threshold=args.conf_threshold,
+            max_points=args.max_points,
+        )
+        if ply_path:
+            logger.info(f"Point cloud saved to: {ply_path}")
+    
     logger.info(f"\n✅ Batch processing complete!")
     logger.info(f"Output: {args.output_dir}")
-    logger.info("\nNext steps:")
-    logger.info("1. Verify all frames have camera poses in transforms.json")
-    logger.info("2. Update Neuralangelo config to use this directory")
-    logger.info("3. Run Neuralangelo training")
+    logger.info("\nOutputs:")
+    logger.info(f"  - transforms.json  (camera poses)")
+    logger.info(f"  - images/          (processed frames)")
+    logger.info(f"  - depth/           (depth maps)")
+    if not args.no_ply:
+        logger.info(f"  - points.ply       (colored point cloud)")
 
 
 if __name__ == "__main__":
